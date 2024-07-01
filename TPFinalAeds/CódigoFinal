@@ -134,13 +134,13 @@ void cadastrarEstadia() {
         for (int i = 0; i < totalClientes; i++) {
             if (clientes[i].codigo == codigoCliente) {
                 clienteExistente = 1;
-                break;
+                return 0;
             }
         }
 
         if (!clienteExistente) {
             printf("Cliente não encontrado.\n");
-            return;
+            return 0;
         }
 
         Estadia novaEstadia;
@@ -158,13 +158,13 @@ void cadastrarEstadia() {
                 novaEstadia.numeroQuarto = quartos[i].numero;
                 strcpy(quartos[i].status, "ocupado");
                 quartoEncontrado = 1;
-                break;
+                return 0;
             }
         }
 
         if (!quartoEncontrado) {
             printf("Nenhum quarto disponível para a quantidade de hóspedes desejada.\n");
-            return;
+            return 0;
         }
 
         printf("Data de entrada (dd/mm/yyyy): ");
@@ -211,7 +211,7 @@ void darBaixaEstadia() {
             totalEstadias--;
 
             printf("Estadia baixada com sucesso!\n");
-            return;
+            return 0;
         }
     }
     printf("Estadia não encontrada.\n");
@@ -231,7 +231,7 @@ void pesquisarCliente() {
             printf("Nome: %s\n", clientes[i].nome);
             printf("Endereço: %s\n", clientes[i].endereco);
             printf("Telefone: %s\n", clientes[i].telefone);
-            return;
+            return 0;
         }
     }
     printf("Cliente não encontrado.\n");
@@ -252,7 +252,7 @@ void pesquisarFuncionario() {
             printf("Telefone: %s\n", funcionarios[i].telefone);
             printf("Cargo: %s\n", funcionarios[i].cargo);
             printf("Salário: R$ %.2f\n", funcionarios[i].salario);
-            return;
+            return 0;
         }
     }
     printf("Funcionário não encontrado.\n");
