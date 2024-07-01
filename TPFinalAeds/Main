@@ -1,0 +1,71 @@
+#include <stdio.h>
+
+void menu();
+
+int main() {
+    carregarDadosClientes();
+    carregarDadosFuncionarios();
+    carregarDadosEstadias();
+
+    menu();
+
+    salvarDadosClientes();
+    salvarDadosFuncionarios();
+    salvarDadosEstadias();
+
+    return 0;
+}
+
+void menu() {
+    int opcao;
+    do {
+        printf("\nMenu:\n");
+        printf("1. Cadastrar cliente\n");
+        printf("2. Cadastrar funcionário\n");
+        printf("3. Cadastrar quarto\n");
+        printf("4. Cadastrar estadia\n");
+        printf("5. Dar baixa em estadia\n");
+        printf("6. Pesquisar cliente\n");
+        printf("7. Pesquisar funcionário\n");
+        printf("8. Listar estadias de um cliente\n");
+        printf("9. Sair\n");
+        printf("Escolha uma opção: ");
+        scanf("%d", &opcao);
+
+        switch (opcao) {
+            case 1:
+                cadastrarCliente();
+                break;
+            case 2:
+                cadastrarFuncionario();
+                break;
+            case 3:
+                cadastrarQuarto();
+                break;
+            case 4:
+                cadastrarEstadia();
+                break;
+            case 5:
+                darBaixaEstadia();
+                break;
+            case 6:
+                pesquisarCliente();
+                break;
+            case 7:
+                pesquisarFuncionario();
+                break;
+            case 8: {
+                int codigoCliente;
+                printf("Digite o código do cliente: ");
+                scanf("%d", &codigoCliente);
+                listarEstadiasCliente(codigoCliente);
+                break;
+            }
+            case 9:
+                printf("Saindo...\n");
+                break;
+            default:
+                printf("Opção inválida.\n");
+        }
+    } while (opcao != 9);
+}

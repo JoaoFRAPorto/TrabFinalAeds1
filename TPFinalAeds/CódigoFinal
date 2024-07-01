@@ -1,0 +1,380 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define MAX_CLIENTES 100
+#define MAX_FUNCIONARIOS 50
+#define MAX_ESTADIAS 200
+#define MAX_QUARTOS 50
+
+typedef struct {
+    int codigo;
+    char nome[50];
+    char endereco[100];
+    char telefone[20];
+} Cliente;
+
+typedef struct {
+    int codigo;
+    char nome[50];
+    char telefone[20];
+    char cargo[20];
+    float salario;
+} Funcionario;
+
+typedef struct {
+    int numero;
+    int quantidadeHospedes;
+    float valorDiaria;
+    char status[10];
+} Quarto;
+
+typedef struct {
+    int codigo;
+    int codigoCliente;
+    int numeroQuarto;
+    char dataEntrada[11];
+    char dataSaida[11];
+    int quantidadeDiarias;
+} Estadia;
+
+Cliente clientes[MAX_CLIENTES];
+Funcionario funcionarios[MAX_FUNCIONARIOS];
+Quarto quartos[MAX_QUARTOS];
+Estadia estadias[MAX_ESTADIAS];
+
+int totalClientes = 0;
+int totalFuncionarios = 0;
+int totalQuartos = 0;
+int totalEstadias = 0;
+
+void cadastrarCliente();
+void cadastrarFuncionario();
+void cadastrarQuarto();
+void cadastrarEstadia();
+void darBaixaEstadia();
+void pesquisarCliente();
+void pesquisarFuncionario();
+void listarEstadiasCliente();
+void menu();
+void carregarDados();
+void salvarDados();
+
+int main() {
+    carregarDados();
+    menu();
+    salvarDados();
+    return 0;
+}
+
+void cadastrarCliente() {
+    if (totalClientes < MAX_CLIENTES) {
+        Cliente novoCliente;
+        novoCliente.codigo = totalClientes + 1;
+        printf("Nome do cliente: ");
+        scanf(" %[^\n]%*c", novoCliente.nome);
+        printf("Endereço do cliente: ");
+        scanf(" %[^\n]%*c", novoCliente.endereco);
+        printf("Telefone do cliente: ");
+        scanf(" %[^\n]%*c", novoCliente.telefone);
+
+        clientes[totalClientes++] = novoCliente;
+        printf("Cliente cadastrado com sucesso!\n");
+    } else {
+        printf("Limite de clientes atingido.\n");
+    }
+}
+
+void cadastrarFuncionario() {
+    if (totalFuncionarios < MAX_FUNCIONARIOS) {
+        Funcionario novoFuncionario;
+        novoFuncionario.codigo = totalFuncionarios + 1;
+        printf("Nome do funcionário: ");
+        scanf(" %[^\n]%*c", novoFuncionario.nome);
+        printf("Telefone do funcionário: ");
+        scanf(" %[^\n]%*c", novoFuncionario.telefone);
+        printf("Cargo do funcionário: ");
+        scanf(" %[^\n]%*c", novoFuncionario.cargo);
+        printf("Salário do funcionário: ");
+        scanf("%f", &novoFuncionario.salario);
+
+        funcionarios[totalFuncionarios++] = novoFuncionario;
+        printf("Funcionário cadastrado com sucesso!\n");
+    } else {
+        printf("Limite de funcionários atingido.\n");
+    }
+}
+
+void cadastrarQuarto() {
+    if (totalQuartos < MAX_QUARTOS) {
+        Quarto novoQuarto;
+        novoQuarto.numero = totalQuartos + 1;
+        printf("Quantidade de hóspedes: ");
+        scanf("%d", &novoQuarto.quantidadeHospedes);
+        printf("Valor da diária: ");
+        scanf("%f", &novoQuarto.valorDiaria);
+        strcpy(novoQuarto.status, "desocupado");
+
+        quartos[totalQuartos++] = novoQuarto;
+        printf("Quarto cadastrado com sucesso!\n");
+    } else {
+        printf("Limite de quartos atingido.\n");
+    }
+}
+
+void cadastrarEstadia() {
+    if (totalEstadias < MAX_ESTADIAS) {
+        int codigoCliente;
+        printf("Código do cliente: ");
+        scanf("%d", &codigoCliente);
+
+        // Verificar se o cliente existe
+        int clienteExistente = 0;
+        for (int i = 0; i < totalClientes; i++) {
+            if (clientes[i].codigo == codigoCliente) {
+                clienteExistente = 1;
+                break;
+            }
+        }
+
+        if (!clienteExistente) {
+            printf("Cliente não encontrado.\n");
+            return;
+        }
+
+        Estadia novaEstadia;
+        novaEstadia.codigo = totalEstadias + 1;
+        novaEstadia.codigoCliente = codigoCliente;
+
+        printf("Quantidade de hóspedes: ");
+        int quantidadeHospedes;
+        scanf("%d", &quantidadeHospedes);
+
+        // Encontrar um quarto disponível
+        int quartoEncontrado = 0;
+        for (int i = 0; i < totalQuartos; i++) {
+            if (quartos[i].quantidadeHospedes >= quantidadeHospedes && strcmp(quartos[i].status, "desocupado") == 0) {
+                novaEstadia.numeroQuarto = quartos[i].numero;
+                strcpy(quartos[i].status, "ocupado");
+                quartoEncontrado = 1;
+                break;
+            }
+        }
+
+        if (!quartoEncontrado) {
+            printf("Nenhum quarto disponível para a quantidade de hóspedes desejada.\n");
+            return;
+        }
+
+        printf("Data de entrada (dd/mm/yyyy): ");
+        scanf("%s", novaEstadia.dataEntrada);
+        printf("Data de saída (dd/mm/yyyy): ");
+        scanf("%s", novaEstadia.dataSaida);
+
+        // Calcular a quantidade de diárias
+        struct tm entrada = {0}, saida = {0};
+        strptime(novaEstadia.dataEntrada, "%d/%m/%Y", &entrada);
+        strptime(novaEstadia.dataSaida, "%d/%m/%Y", &saida);
+        time_t tEntrada = mktime(&entrada);
+        time_t tSaida = mktime(&saida);
+        novaEstadia.quantidadeDiarias = (difftime(tSaida, tEntrada) / (60 * 60 * 24));
+
+        estadias[totalEstadias++] = novaEstadia;
+        printf("Estadia cadastrada com sucesso!\n");
+    } else {
+        printf("Limite de estadias atingido.\n");
+    }
+}
+
+void darBaixaEstadia() {
+    int codigoEstadia;
+    printf("Código da estadia: ");
+    scanf("%d", &codigoEstadia);
+
+    // Encontrar a estadia
+    for (int i = 0; i < totalEstadias; i++) {
+        if (estadias[i].codigo == codigoEstadia) {
+            int numeroQuarto = estadias[i].numeroQuarto;
+
+            // Calcular o valor total
+            float valorTotal = estadias[i].quantidadeDiarias * quartos[numeroQuarto - 1].valorDiaria;
+            printf("Valor total a ser pago: R$ %.2f\n", valorTotal);
+
+            // Alterar o status do quarto para desocupado
+            strcpy(quartos[numeroQuarto - 1].status, "desocupado");
+
+            // Remover a estadia do array
+            for (int j = i; j < totalEstadias - 1; j++) {
+                estadias[j] = estadias[j + 1];
+            }
+            totalEstadias--;
+
+            printf("Estadia baixada com sucesso!\n");
+            return;
+        }
+    }
+    printf("Estadia não encontrada.\n");
+}
+
+void pesquisarCliente() {
+    int codigo;
+    char nome[50];
+
+    printf("Digite o código ou nome do cliente: ");
+    scanf("%d", &codigo);
+    fgets(nome, sizeof(nome), stdin); // Para ignorar a quebra de linha
+
+    for (int i = 0; i < totalClientes; i++) {
+        if (clientes[i].codigo == codigo || strcasecmp(clientes[i].nome, nome) == 0) {
+            printf("Código: %d\n", clientes[i].codigo);
+            printf("Nome: %s\n", clientes[i].nome);
+            printf("Endereço: %s\n", clientes[i].endereco);
+            printf("Telefone: %s\n", clientes[i].telefone);
+            return;
+        }
+    }
+    printf("Cliente não encontrado.\n");
+}
+
+void pesquisarFuncionario() {
+    int codigo;
+    char nome[50];
+
+    printf("Digite o código ou nome do funcionário: ");
+    scanf("%d", &codigo);
+    fgets(nome, sizeof(nome), stdin); // Para ignorar a quebra de linha
+
+    for (int i = 0; i < totalFuncionarios; i++) {
+        if (funcionarios[i].codigo == codigo || strcasecmp(funcionarios[i].nome, nome) == 0) {
+            printf("Código: %d\n", funcionarios[i].codigo);
+            printf("Nome: %s\n", funcionarios[i].nome);
+            printf("Telefone: %s\n", funcionarios[i].telefone);
+            printf("Cargo: %s\n", funcionarios[i].cargo);
+            printf("Salário: R$ %.2f\n", funcionarios[i].salario);
+            return;
+        }
+    }
+    printf("Funcionário não encontrado.\n");
+}
+
+void listarEstadiasCliente() {
+    int codigoCliente;
+    printf("Código do cliente: ");
+    scanf("%d", &codigoCliente);
+
+    printf("Estadias do cliente %d:\n", codigoCliente);
+    for (int i = 0; i < totalEstadias; i++) {
+        if (estadias[i].codigoCliente == codigoCliente) {
+            printf("Código da estadia: %d\n", estadias[i].codigo);
+            printf("Número do quarto: %d\n", estadias[i].numeroQuarto);
+            printf("Data de entrada: %s\n", estadias[i].dataEntrada);
+            printf("Data de saída: %s\n", estadias[i].dataSaida);
+            printf("Quantidade de diárias: %d\n", estadias[i].quantidadeDiarias);
+        }
+    }
+}
+
+void menu() {
+    int opcao;
+    do {
+        printf("\nMenu:\n");
+        printf("1. Cadastrar cliente\n");
+        printf("2. Cadastrar funcionário\n");
+        printf("3. Cadastrar quarto\n");
+        printf("4. Cadastrar estadia\n");
+        printf("5. Dar baixa em estadia\n");
+        printf("6. Pesquisar cliente\n");
+        printf("7. Pesquisar funcionário\n");
+        printf("8. Listar estadias de um cliente\n");
+        printf("9. Sair\n");
+        printf("Escolha uma opção: ");
+        scanf("%d", &opcao);
+
+        switch (opcao) {
+            case 1:
+                cadastrarCliente();
+                break;
+            case 2:
+                cadastrarFuncionario();
+                break;
+            case 3:
+                cadastrarQuarto();
+                break;
+            case 4:
+                cadastrarEstadia();
+                break;
+            case 5:
+                darBaixaEstadia();
+                break;
+            case 6:
+                pesquisarCliente();
+                break;
+            case 7:
+                pesquisarFuncionario();
+                break;
+            case 8:
+                listarEstadiasCliente();
+                break;
+            case 9:
+                printf("Saindo...\n");
+                break;
+            default:
+                printf("Opção inválida.\n");
+        }
+    } while (opcao != 9);
+}
+
+void carregarDados() {
+    FILE *file;
+    file = fopen("clientes.dat", "rb");
+    if (file != NULL) {
+        fread(&totalClientes, sizeof(int), 1, file);
+        fread(clientes, sizeof(Cliente), totalClientes, file);
+        fclose(file);
+    }
+
+    file = fopen("funcionarios.dat", "rb");
+    if (file != NULL) {
+        fread(&totalFuncionarios, sizeof(int), 1, file);
+        fread(funcionarios, sizeof(Funcionario), totalFuncionarios, file);
+        fclose(file);
+    }
+
+    file = fopen("quartos.dat", "rb");
+    if (file != NULL) {
+        fread(&totalQuartos, sizeof(int), 1, file);
+        fread(quartos, sizeof(Quarto), totalQuartos, file);
+        fclose(file);
+    }
+
+    file = fopen("estadias.dat", "rb");
+    if (file != NULL) {
+        fread(&totalEstadias, sizeof(int), 1, file);
+        fread(estadias, sizeof(Estadia), totalEstadias, file);
+        fclose(file);
+    }
+}
+
+void salvarDados() {
+    FILE *file;
+    file = fopen("clientes.dat", "wb");
+    fwrite(&totalClientes, sizeof(int), 1, file);
+    fwrite(clientes, sizeof(Cliente), totalClientes, file);
+    fclose(file);
+
+    file = fopen("funcionarios.dat", "wb");
+    fwrite(&totalFuncionarios, sizeof(int), 1, file);
+    fwrite(funcionarios, sizeof(Funcionario), totalFuncionarios, file);
+    fclose(file);
+
+    file = fopen("quartos.dat", "wb");
+    fwrite(&totalQuartos, sizeof(int), 1, file);
+    fwrite(quartos, sizeof(Quarto), totalQuartos, file);
+    fclose(file);
+
+    file = fopen("estadias.dat", "wb");
+    fwrite(&totalEstadias, sizeof(int), 1, file);
+    fwrite(estadias, sizeof(Estadia), totalEstadias, file);
+    fclose(file);
+}

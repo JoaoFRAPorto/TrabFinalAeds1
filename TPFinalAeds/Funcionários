@@ -1,0 +1,73 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_FUNCIONARIOS 50
+
+typedef struct {
+    int codigo;
+    char nome[50];
+    char telefone[20];
+    char cargo[20];
+    float salario;
+} Funcionario;
+
+Funcionario funcionarios[MAX_FUNCIONARIOS];
+int totalFuncionarios = 0;
+
+void cadastrarFuncionario() {
+    if (totalFuncionarios < MAX_FUNCIONARIOS) {
+        Funcionario novoFuncionario;
+        novoFuncionario.codigo = totalFuncionarios + 1;
+        printf("Nome do funcionário: ");
+        scanf(" %[^\n]%*c", novoFuncionario.nome);
+        printf("Telefone do funcionário: ");
+        scanf(" %[^\n]%*c", novoFuncionario.telefone);
+        printf("Cargo do funcionário: ");
+        scanf(" %[^\n]%*c", novoFuncionario.cargo);
+        printf("Salário do funcionário: ");
+        scanf("%f", &novoFuncionario.salario);
+
+        funcionarios[totalFuncionarios++] = novoFuncionario;
+        printf("Funcionário cadastrado com sucesso!\n");
+    } else {
+        printf("Limite de funcionários atingido.\n");
+    }
+}
+
+void pesquisarFuncionario() {
+    int codigo;
+    char nome[50];
+
+    printf("Digite o código ou nome do funcionário: ");
+    scanf("%d", &codigo);
+    fgets(nome, sizeof(nome), stdin); // Para ignorar a quebra de linha
+
+    for (int i = 0; i < totalFuncionarios; i++) {
+        if (funcionarios[i].codigo == codigo || strcasecmp(funcionarios[i].nome, nome) == 0) {
+            printf("Código: %d\n", funcionarios[i].codigo);
+            printf("Nome: %s\n", funcionarios[i].nome);
+            printf("Telefone: %s\n", funcionarios[i].telefone);
+            printf("Cargo: %s\n", funcionarios[i].cargo);
+            printf("Salário: R$ %.2f\n", funcionarios[i].salario);
+            return;
+        }
+    }
+    printf("Funcionário não encontrado.\n");
+}
+
+void carregarDadosFuncionarios() {
+    FILE *file = fopen("funcionarios.dat", "rb");
+    if (file != NULL) {
+        fread(&totalFuncionarios, sizeof(int), 1, file);
+        fread(funcionarios, sizeof(Funcionario), totalFuncionarios, file);
+        fclose(file);
+    }
+}
+
+void salvarDadosFuncionarios() {
+    FILE *file = fopen("funcionarios.dat", "wb");
+    fwrite(&totalFuncionarios, sizeof(int), 1, file);
+    fwrite(funcionarios, sizeof(Funcionario), totalFuncionarios, file);
+    fclose(file);
+}
